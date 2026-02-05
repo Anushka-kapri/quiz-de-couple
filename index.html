@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nous deux 💜 - Le Quiz du Couple</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #f6c1e1, #cdb4db);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+      text-align: center;
+    }
+    h1, h2 {
+      text-align: center;
+      color: #ff7aa2;
+    }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+    button {
+      background: #ff7aa2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #e8648c;
+    }
+    .category-button, .player-button {
+        background: #cdb4db;
+        color: white;
+        margin-bottom: 10px;
+        font-weight: bold;
+        padding: 15px;
+        font-size: 1.1em;
+    }
+    .category-button:hover, .player-button:hover {
+        background: #b69cdb;
+    }
+    .answer-button {
+        background: #f6c1e1;
+        color: #333;
+        margin-bottom: 8px;
+        border: 1px solid #e0b0d5;
+    }
+    .answer-button:hover {
+        background: #e8a7d5;
+        color: white;
+    }
+    .answer-button.selected {
+        background: #ff7aa2; /* Couleur de sélection */
+        color: white;
+        border-color: #ff7aa2;
+    }
+    .question-text {
+      margin-top: 20px;
+      font-size: 1.2em;
+      font-weight: bold;
+      color: #555;
+      margin-bottom: 20px;
+    }
+    .hidden {
+      display: none;
+    }
+    .emoji {
+      font-size: 2em;
+      text-align: center;
+      margin-bottom: 15px;
+    }
+    .error-message {
+        color: red;
+        text-align: center;
+        margin-top: 10px;
+        font-size: 0.9em;
+    }
+    #answersContainer {
+        margin-top: 15px;
+    }
+    .back-button {
+        background: #ccc;
+        margin-top: 20px;
+    }
+    .back-button:hover {
+        background: #b0b0b0;
+    }
+    #secretMessageScreen p, #resultsScreen p {
+        font-size: 1.1em;
+        line-height: 1.6em;
+        margin-bottom: 20px;
+        color: #555;
+    }
+    #secretMessageScreen .emoji, #resultsScreen .emoji {
+        margin-top: 10px;
+        margin-bottom: 25px;
+    }
+    #resultsScreen ul {
+        list-style: none;
+        padding: 0;
+        text-align: left;
+        margin-top: 20px;
+    }
+    #resultsScreen li {
+        margin-bottom: 10px;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 8px;
+        border-left: 5px solid #ff7aa2;
+    }
+    #resultsScreen li strong {
+        color: #ff7aa2;
+    }
+    .score-summary {
+        font-size: 1.3em;
+        font-weight: bold;
+        margin-top: 20px;
+        color: #555;
+    }
+    .results-player-name {
+        color: #ff7aa2;
+        font-weight: bold;
+    }
+    .correct-answer {
+        color: green;
+        font-weight: bold;
+    }
+    .wrong-answer {
+        color: red;
+        font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ÉCRAN MOT DE PASSE -->
+  <div class="card" id="loginScreen">
+    <h1>🔒 Accès secret</h1>
+    <p>Réservé à <strong>Anushka 💜 & Anne-Claire 🌈</strong></p>
+    <p>Depuis le 31 janvier 2026</p>
+    <input type="password" id="passwordInput" placeholder="Entrez le code secret" />
+    <button id="submitPassword">Entrer</button>
+    <p class="error-message hidden" id="errorMessage">Code secret incorrect. Réessayez !</p>
+  </div>
+
+  <!-- ÉCRAN : MESSAGE SECRET -->
+  <div class="card hidden" id="secretMessageScreen">
+    <h2>✨ Un petit mot doux pour toi ✨</h2>
+    <div class="emoji">💖</div>
+    <p>
+      Ma douce,
+      <br><br>
+      Je voulais juste te dire à quel point je t'aime et que je suis heureuse de partager tous ces moments avec toi. Chaque jour à tes côtés est une aventure merveilleuse. J'espère que tu apprécieras notre petit jeu.
+      <br><br>
+      Avec tout mon amour,
+      <br>
+      Ta Anushka 💜
+    </p>
+    <button id="continueToCategories">Continuer l'aventure !</button>
+  </div>
+
+  <!-- ÉCRAN DE SÉLECTION DE CATÉGORIE -->
+  <div class="card hidden" id="categorySelectionScreen">
+    <h2>💖 Choisissons notre aventure ! 💖</h2>
+    <p>Quelle ambiance vous tente aujourd'hui pour ce quiz de couple ?</p>
+    <button class="category-button" data-category="Romantique">🌹 Romantique</button>
+    <button class="category-button" data-category="Fun">🎉 Fun & Rigolade</button>
+    <button class="category-button" data-category="Couple lesbien">👭 Notre Histoire</button>
+    <button class="category-button" data-category="Spicy doux">🌶️ Spicy Doux</button>
+  </div>
+
+  <!-- ÉCRAN DE SÉLECTION DU JOUEUR -->
+  <div class="card hidden" id="playerSelectionScreen">
+    <h2 id="playerSelectionTitle"></h2>
+    <p>Qui va répondre aux questions maintenant ?</p>
+    <button class="player-button" data-player="Anushka">💜 Anushka</button>
+    <button class="player-button" data-player="Anne-Claire">🌈 Anne-Claire</button>
+  </div>
+
+  <!-- ÉCRAN DES QUESTIONS (QCM) -->
+  <div class="card hidden" id="questionScreen">
+    <h2 id="quizPhaseTitle"></h2>
+    <p id="playerTurnInfo"></p>
+    <div class="emoji">✨</div>
+    <div class="question-text" id="currentQuestionText">
+      <!-- La question sera insérée ici par JavaScript -->
+    </div>
+    <div id="answersContainer">
+      <!-- Les boutons de réponse seront insérés ici par JavaScript -->
+    </div>
+    <button id="submitAnswerButton" disabled>Valider ma réponse</button>
+  </div>
+
+  <!-- ÉCRAN DES RÉSULTATS -->
+  <div class="card hidden" id="resultsScreen">
+    <h2>🎉 Vos résultats ! 🎉</h2>
+    <div class="emoji">🥰</div>
+    <p class="score-summary" id="anushkaScoreSummary"></p>
+    <p class="score-summary" id="anneClaireScoreSummary"></p>
+    <h3 style="color:#ff7aa2; margin-top:30px;">Détail des réponses :</h3>
+    <ul id="resultsList">
+      <!-- Les détails seront insérés ici par JavaScript -->
+    </ul>
+    <button id="playAgainButton">Rejouer une catégorie !</button>
+    <button class="back-button" id="backToCategoriesFromResults">Changer de catégorie</button>
+  </div>
+
+
+  <script>
+    // --- Éléments du DOM ---
+    const loginScreen = document.getElementById('loginScreen');
+    const passwordInput = document.getElementById('passwordInput');
+    const submitPasswordButton = document.getElementById('submitPassword');
+    const errorMessage = document.getElementById('errorMessage');
+
+    const secretMessageScreen = document.getElementById('secretMessageScreen');
+    const continueToCategoriesButton = document.getElementById('continueToCategories');
+
+    const categorySelectionScreen = document.getElementById('categorySelectionScreen');
+    const categoryButtons = document.querySelectorAll('.category-button');
+
+    const playerSelectionScreen = document.getElementById('playerSelectionScreen');
+    const playerSelectionTitle = document.getElementById('playerSelectionTitle');
+    const playerButtons = document.querySelectorAll('.player-button');
+
+    const questionScreen = document.getElementById('questionScreen');
+    const quizPhaseTitle = document.getElementById('quizPhaseTitle');
+    const playerTurnInfo = document.getElementById('playerTurnInfo');
+    const currentQuestionText = document.getElementById('currentQuestionText');
+    const answersContainer = document.getElementById('answersContainer');
+    const submitAnswerButton = document.getElementById('submitAnswerButton');
+
+    const resultsScreen = document.getElementById('resultsScreen');
+    const anushkaScoreSummary = document.getElementById('anushkaScoreSummary');
+    const anneClaireScoreSummary = document.getElementById('anneClaireScoreSummary');
+    const resultsList = document.getElementById('resultsList');
+    const playAgainButton = document.getElementById('playAgainButton');
+    const backToCategoriesFromResults = document.getElementById('backToCategoriesFromResults');
+
+
+    // --- Configuration ---
+    const CORRECT_PASSWORD = "notrejour"; // <-- TRÈS IMPORTANT : CHANGEZ CE MOT DE PASSE !
+    const PLAYERS = {
+        ANUSHKA: 'Anushka',
+        ANNE_CLAIRE: 'Anne-Claire'
+    };
+    const GAME_PHASES = {
+        PLAYER1_ANSWERS: 'Anushka répond',
+        PLAYER2_ANSWERS: 'Anne-Claire répond',
+        PLAYER1_GUESSES: 'Anushka devine',
+        PLAYER2_GUESSES: 'Anne-Claire devine',
+        RESULTS: 'Résultats'
+    };
+
+    // --- Données des questions par catégorie ---
+    const questionsByCategory = {
+      "Romantique": [
+        {
+          q: "Quel est le geste romantique le plus simple qui te touche le plus ?",
+          options: [
+            "Un câlin inattendu",
+            "Un petit mot doux laissé quelque part",
+            "Un regard plein de tendresse",
+            "Tenir ma main en public"
+          ]
+        },
+        {
+          q: "Si notre amour était une fleur, quelle serait-elle ?",
+          options: [
+            "Une rose éternelle, pour sa beauté et sa passion.",
+            "Un tournesol, toujours tourné vers la lumière de l'autre.",
+            "Un lys, pour sa pureté et son élégance.",
+            "Une pivoine, pour son abondance et sa générosité."
+          ]
+        },
+        {
+          q: "Quel est ton souvenir de rendez-vous amoureux préféré avec moi ?",
+          options: [
+            "Notre premier rendez-vous, plein d'excitation.",
+            "Une soirée simple à la maison, juste nous deux.",
+            "Une escapade imprévue et magique.",
+            "Un dîner spécial où tout était parfait."
+          ]
+        },
+        {
+          q: "Quelle est la chanson qui te fait instantanément penser à nous ?",
+          options: [
+            "Celle qui passait pendant un moment clé de notre relation.",
+            "Une ballade douce qui décrit parfaitement nos sentiments.",
+            "Une chanson entraînante qui nous donne envie de danser.",
+            "Celle que nous chantons toujours en duo."
+          ]
+        },
+        {
+          q: "Quel compliment sur notre relation te ferait le plus plaisir ?",
+          options: [
+            "'Vous êtes tellement complices !'",
+            "'L'amour que vous partagez est évident pour tous.'",
+            "'Vous vous complétez si bien !'",
+            "'Votre relation est une inspiration.'"
+          ]
+        },
+        {
+          q: "Quel serait ton voyage romantique idéal avec moi ?",
+          options: [
+            "Une semaine de détente sur une île paradisiaque.",
+            "Un road trip à travers des paysages magnifiques.",
+            "Une escapade citadine romantique dans une capitale européenne.",
+            "Un séjour cosy dans un chalet à la montagne."
+          ]
+        },
+        {
+          q: "Quel est le plus beau rêve que tu aimerais réaliser avec moi ?",
+          options: [
+            "Acheter notre propre nid douillet.",
+            "Faire le tour du monde, main dans la main.",
+            "Voir nos familles et amis réunis pour une occasion spéciale.",
+            "Construire un projet qui nous passionne toutes les deux."
+          ]
+        },
+        {
+          q: "Quelle est la chose la plus romantique que tu aies faite ou rêvé de faire pour moi ?",
+          options: [
+            "Écrire une lettre d'amour sincère et émouvante.",
+            "Organiser une surprise inoubliable.",
+            "Préparer mon plat préféré avec amour et attention.",
+            "Me chanter une chanson ou jouer un instrument pour moi."
+          ]
+        },
+        {
+          q: "Quel type de soirée romantique te tente le plus après une longue semaine ?",
+          options: [
+            "Un dîner aux chandelles à la maison.",
+            "Une soirée film/série sous un plaid, blotties l'une contre l'autre.",
+            "Un restaurant chic pour se faire plaisir.",
+            "Une promenade sous les étoiles, main dans la main."
+          ]
+        },
+        {
+          q: "Quelle petite tradition romantique aimerais-tu que nous ayons ?",
+          options: [
+            "Un café/thé au lit chaque dimanche matin.",
+            "Écrire un petit mot doux à l'autre une fois par semaine.",
+            "Faire une promenade romantique hebdomadaire.",
+            "Un rituel de 'date night' régulier, même à la maison."
+          ]
+        }
+        // Ajoutez d'autres questions romantiques ici... (ex: 100+)
+      ],
+      "Fun": [
+        {
+          q: "Quelle est la chose la plus folle que nous ayons faite ensemble (ou que tu aimerais faire) ?",
+          options: [
+            "Chanter à tue-tête dans la voiture sur une musique ringarde.",
+            "Faire une bataille de polochons épique.",
+            "Tenter une recette de cuisine complètement loufoque.",
+            "Se déguiser sans raison juste pour rire."
+          ]
+        },
+        {
+          q: "Si nous étions un duo comique, quel serait notre spécialité ?",
+          options: [
+            "Les imitations hilarantes des gens qu'on connaît.",
+            "Les situations absurdes de la vie quotidienne.",
+            "Les jeux de mots et les blagues nulles mais efficaces.",
+            "Les sketchs improvisés sur le vif."
+          ]
+        },
+        {
+          q: "Quel est notre meilleur fou rire dont tu te souviens encore ?",
+          options: [
+            "Celui où on a ri tellement fort qu'on a eu mal au ventre.",
+            "Le moment où on a éclaté de rire en public sans raison apparente.",
+            "Notre fou rire incontrôlable devant un film ou une vidéo.",
+            "Quand l'une de nous a fait une gaffe tellement énorme."
+          ]
+        },
+        {
+          q: "Quel jeu de société/vidéo te fait le plus rire quand on y joue ensemble ?",
+          options: [
+            "Un jeu de cartes où la malchance de l'une fait le bonheur de l'autre.",
+            "Un jeu coopératif où on panique ensemble.",
+            "Un jeu compétitif où la mauvaise foi est reine.",
+            "Un jeu vidéo où nos personnages font n'importe quoi."
+          ]
+        },
+        {
+          q: "Quelle est notre habitude la plus bizarre mais drôle ?",
+          options: [
+            "Parler à nos animaux de compagnie comme s'ils comprenaient tout.",
+            "Inventer des chansons ridicules sur n'importe quoi.",
+            "Faire des danses improvisées quand personne ne regarde.",
+            "Se faire des blagues pourries à des moments inattendus."
+          ]
+        },
+        {
+          q: "Quel serait le scénario le plus drôle pour un rendez-vous raté (qui finirait bien, bien sûr) ?",
+          options: [
+            "Tomber dans une flaque d'eau en arrivant au restaurant.",
+            "Se tromper complètement de restaurant et se retrouver dans un endroit improbable.",
+            "Une catastrophe culinaire hilarante en essayant de cuisiner ensemble.",
+            "Se faire surprendre par un événement inattendu (flash mob, animaux en fuite...)."
+          ]
+        },
+        {
+          q: "Si nous devions créer un TikTok/Reel humoristique, quel serait le concept ?",
+          options: [
+            "Reproduire des scènes de films cultes avec un twist comique.",
+            "Montrer les coulisses drôles de notre vie quotidienne de couple.",
+            "Un défi ridicule qu'on essaie de relever ensemble.",
+            "Des parodies de tendances populaires."
+          ]
+        },
+        {
+          q: "Quel est le talent caché le plus amusant que tu aimerais que j'aie (ou que tu as déjà découvert) ?",
+          options: [
+            "Faire des voix d'animaux parfaites.",
+            "Raconter des blagues de manière hilarante.",
+            "Danser comme une folle sans aucune gêne.",
+            "Faire des tours de magie ratés mais drôles."
+          ]
+        },
+        {
+          q: "Quelle activité absurde voudrais-tu essayer avec moi, juste pour le fun ?",
+          options: [
+            "Faire du karaoké dans un bar improbable.",
+            "Participer à une course d'obstacles boueuse.",
+            "Construire un fort géant avec des couvertures dans le salon.",
+            "Essayer de peindre un portrait de l'autre sans talent artistique."
+          ]
+        },
+        {
+          q: "Si on pouvait changer de corps pour une journée, quelle serait la première chose hilarante que tu ferais en étant moi ?",
+          options: [
+            "Essayer de me coiffer comme jamais auparavant.",
+            "Parler avec une voix bizarre pour surprendre tout le monde.",
+            "Faire des choses que je ne ferais jamais normalement.",
+            "Manger toutes mes friandises préférées sans culpabilité."
+          ]
+        }
+        // Ajoutez d'autres questions fun ici... (ex: 100+)
+      ],
+      "Couple lesbien": [
+        {
+          q: "Quel est le stéréotype sur les couples lesbiens que tu trouves le plus absurde ?",
+          options: [
+            "Qu'il y a forcément une 'buchi' et une 'femme'.",
+            "Qu'on adopte toujours plein de chats.",
+            "Qu'on se coupe toutes les cheveux courts.",
+            "Qu'on doit toujours expliquer qui fait quoi dans le couple."
+          ]
+        },
+        {
+          q: "Quel est le meilleur compliment qu'on puisse nous faire en tant que couple de femmes ?",
+          options: [
+            "'Vous formez un couple si beau et aimant.'",
+            "'Votre complicité est inspirante.'",
+            "'C'est merveilleux de voir votre amour éclore.'",
+            "'Vous êtes un si beau modèle de couple.'"
+          ]
+        },
+        {
+          q: "Quel moment t'a fait réaliser 'oui, elle est ma personne' en tant que femme, avec toi ?",
+          options: [
+            "Le moment où j'ai senti que je pouvais être moi-même à 100%.",
+            "Quand tu as défendu ma cause ou m'as soutenue sans hésitation.",
+            "Le confort et la sécurité que je ressens dans tes bras.",
+            "Le rire partagé sur des sujets que personne d'autre ne comprend."
+          ]
+        },
+        {
+          q: "Quelle est la chose la plus chouette dans le fait d'être un couple de femmes ensemble ?",
+          options: [
+            "La compréhension mutuelle profonde des expériences féminines.",
+            "La liberté de redéfinir les rôles traditionnels.",
+            "Le soutien et la sororité inconditionnels.",
+            "Le style et la complicité que l'on dégage."
+          ]
+        },
+        {
+          q: "Si nous devions adopter un animal qui symbolise notre couple, lequel serait-ce ?",
+          options: [
+            "Deux chats qui se blottissent toujours l'un contre l'autre.",
+            "Un chien joyeux et toujours partant pour l'aventure.",
+            "Un couple de perruches inséparables et bavardes.",
+            "Un poisson combattant, magnifique et indépendant."
+          ]
+        },
+        {
+          q: "Quelle petite fierté as-tu à être un couple de femmes visiblement amoureux ?",
+          options: [
+            "Montrer au monde que l'amour n'a pas de genre.",
+            "Inspirer d'autres personnes à vivre leur vérité.",
+            "Célébrer notre amour ouvertement et sans peur.",
+            "Représenter la diversité et la beauté des relations."
+          ]
+        },
+        {
+          q: "Quel est ton 'safe place' préféré avec moi, en tant que couple ?",
+          options: [
+            "Notre lit, pour les matins paresseux et les confidences nocturnes.",
+            "Un café cosy où on peut discuter des heures.",
+            "Un lieu en nature où on se sent connectées au monde et l'une à l'autre.",
+            "N'importe où, tant que je suis avec toi."
+          ]
+        },
+        {
+          q: "Si nous devions créer notre propre drapeau de couple, à quoi ressemblerait-il ?",
+          options: [
+            "Des couleurs pastel et douces pour notre tendresse.",
+            "Des couleurs vibrantes et audacieuses pour notre passion.",
+            "Un mélange de nos couleurs préférées avec un symbole qui nous représente.",
+            "Un design simple et élégant, reflétant notre harmonie."
+          ]
+        },
+        {
+          q: "Quelle est la 'référence interne' la plus drôle ou la plus tendre que seul notre couple comprend ?",
+          options: [
+            "Un mot ou une phrase inventée qui n'a de sens que pour nous.",
+            "Une blague tirée d'un événement que nous avons vécu.",
+            "Un geste ou une mimique qui exprime tout sans mot dire.",
+            "Le nom que nous donnons à certains objets ou situations."
+          ]
+        },
+        {
+          q: "Quel type de 'date night' inclusif et queer-friendly aimerais-tu faire avec moi ?",
+          options: [
+            "Assister à une pièce de théâtre ou un concert d'artistes LGBTQIA+.",
+            "Participer à un atelier créatif dans un espace inclusif.",
+            "Explorer un quartier connu pour sa scène queer et ses petites boutiques.",
+            "Organiser un dîner avec des amis LGBTQIA+ et discuter de tout et de rien."
+          ]
+        }
+        // Ajoutez d'autres questions spécifiques aux couples lesbiens ici... (ex: 100+)
+      ],
+      "Spicy doux": [
+        {
+          q: "Quel est le compliment le plus doux et séducteur que tu puisses me faire ?",
+          options: [
+            "J'adore la façon dont tu me regardes, ça me fait frissonner.",
+            "Tu es si belle/beau que tu me déstabilises.",
+            "J'adore l'odeur de ta peau quand tu es près de moi.",
+            "Tes caresses sont un pur délice."
+          ]
+        },
+        {
+          q: "Quelle est la petite attention coquine que tu apprécies le plus ?",
+          options: [
+            "Un regard langoureux qui en dit long.",
+            "Une caresse discrète mais suggestive en public.",
+            "Un message sensuel inattendu pendant la journée.",
+            "Me chuchoter une envie à l'oreille."
+          ]
+        },
+        {
+          q: "Si tu devais décrire mon 'aura' séductrice en un mot, lequel choisirais-tu ?",
+          options: [
+            "Magnétique",
+            "Électrisante",
+            "Envoûtante",
+            "Incandescente"
+          ]
+        },
+        {
+          q: "Quelle est la partie de mon corps que tu trouves la plus irrésistible ?",
+          options: [
+            "Tes yeux, ils me parlent sans un mot.",
+            "Tes lèvres, si tentantes.",
+            "Ton cou, parfait pour les baisers.",
+            "Tes mains, elles savent si bien me toucher."
+          ]
+        },
+        {
+          q: "Quel est le scénario de soirée intime 'spicy doux' parfait pour toi ?",
+          options: [
+            "Un bain moussant à deux avec des bougies et de la musique douce.",
+            "Un dîner aphrodisiaque préparé avec amour, suivi d'un massage.",
+            "Une soirée pyjama sexy avec confidences et jeux de regard.",
+            "Un film romantique blotties l'une contre l'autre, avec des caresses exploratrices."
+          ]
+        },
+        {
+          q: "Quelle est la plus belle preuve d'attirance que tu aies ressentie pour moi ?",
+          options: [
+            "Un frisson inattendu quand nos peaux se sont touchées.",
+            "L'envie irrésistible de te rapprocher quand tu es près de moi.",
+            "Des papillons dans le ventre rien qu'en pensant à toi.",
+            "Me sentir complètement à l'aise et désirée dans tes bras."
+          ]
+        },
+        {
+          q: "Quel petit 'péché mignon' que nous partageons te plaît le plus ?",
+          options: [
+            "Les regards entendus qui n'appartiennent qu'à nous.",
+            "Les petites tapes coquines quand on se croise.",
+            "Les rires complices après une remarque suggestive.",
+            "Les câlins qui durent et qui chauffent doucement."
+          ]
+        },
+        {
+          q: "Quelle est la tenue que tu préfères me voir porter (ou ne pas porter) ?",
+          options: [
+            "Une tenue élégante qui met en valeur ta silhouette.",
+            "Tes vêtements confortables quand on se détend, mais qui me donnent envie de te blottir.",
+            "Une jolie lingerie qui suggère plus qu'elle ne montre.",
+            "Rien du tout, juste toi !"
+          ]
+        },
+        {
+          q: "Si on pouvait 'créer' une ambiance chaude et intime instantanément, quel serait le déclencheur ?",
+          options: [
+            "Une lumière tamisée et une bougie parfumée.",
+            "Une musique douce et sensuelle en fond sonore.",
+            "Un verre de notre boisson préférée pour se détendre.",
+            "Un regard profond et un sourire malicieux."
+          ]
+        },
+        {
+          q: "Quel est le fantasme 'doux' que tu aimerais que nous explorions ensemble ?",
+          options: [
+            "Un week-end dans un hôtel romantique avec tous les extras.",
+            "Un pique-nique improvisé sous les étoiles, terminant en étreintes.",
+            "Un massage mutuel qui se transforme en moment intime.",
+            "Une séance photo sensuelle, juste pour nous deux."
+          ]
+        }
+        // Ajoutez d'autres questions spicy douces ici... (ex: 100+)
+      ]
+    };
+
+    // --- Variables d'état du jeu ---
+    let currentCategory = "";
+    let currentCategoryQuestions = []; // Questions originales de la catégorie
+    let gameQuestions = []; // Questions mélangées pour la session de jeu
+    let currentQuestionIndex = 0;
+    let currentPlayer = null;
+    let currentGamePhase = null;
+
+    // Stockage des réponses
+    // Structure: { questionIndex: { anushkaAnswer: "option", anneClaireAnswer: "option", anushkaGuess: "option", anneClaireGuess: "option" } }
+    let gameAnswers = {};
+
+    // --- Fonctions d'affichage/masquage ---
+    function showScreen(screenElement) {
+      document.querySelectorAll('.card').forEach(card => card.classList.add('hidden'));
+      screenElement.classList.remove('hidden');
+    }
+
+    // --- Logique du jeu ---
+
+    function startGamePhase(phase) {
+        currentGamePhase = phase;
+        currentQuestionIndex = 0; // Réinitialiser l'index pour chaque phase
+        submitAnswerButton.disabled = true; // Désactiver le bouton avant qu'une option ne soit choisie
+
+        switch(currentGamePhase) {
+            case GAME_PHASES.PLAYER1_ANSWERS:
+                currentPlayer = PLAYERS.ANUSHKA;
+                quizPhaseTitle.textContent = "Ton tour, Anushka ! 💜";
+                playerTurnInfo.textContent = "Réponds à ces questions avec ton coeur.";
+                displayQuestion();
+                showScreen(questionScreen);
+                break;
+            case GAME_PHASES.PLAYER2_ANSWERS:
+                currentPlayer = PLAYERS.ANNE_CLAIRE;
+                quizPhaseTitle.textContent = "À toi, Anne-Claire ! 🌈";
+                playerTurnInfo.textContent = "Réponds à ces questions, sans tricher ! 😉";
+                displayQuestion();
+                showScreen(questionScreen);
+                break;
+            case GAME_PHASES.PLAYER1_GUESSES:
+                currentPlayer = PLAYERS.ANUSHKA;
+                quizPhaseTitle.textContent = "Anushka, devine ! 💜";
+                playerTurnInfo.textContent = "Comment Anne-Claire a-t-elle répondu à cette question ?";
+                displayQuestion();
+                showScreen(questionScreen);
+                break;
+            case GAME_PHASES.PLAYER2_GUESSES:
+                currentPlayer = PLAYERS.ANNE_CLAIRE;
+                quizPhaseTitle.textContent = "Anne-Claire, devine ! 🌈";
+                playerTurnInfo.textContent = "Comment Anushka a-t-elle répondu à cette question ?";
+                displayQuestion();
+                showScreen(questionScreen);
+                break;
+            case GAME_PHASES.RESULTS:
+                showResults();
+                showScreen(resultsScreen);
+                break;
+        }
+    }
+
+    function displayQuestion() {
+      if (currentQuestionIndex < gameQuestions.length) {
+        const qData = gameQuestions[currentQuestionIndex];
+        currentQuestionText.textContent = qData.q;
+        answersContainer.innerHTML = '';
+
+        qData.options.forEach((option, index) => {
+          const button = document.createElement('button');
+          button.classList.add('answer-button');
+          button.textContent = option;
+          button.dataset.optionIndex = index; // Pour identifier la réponse
+          button.addEventListener('click', () => selectAnswer(button, option));
+          answersContainer.appendChild(button);
+        });
+        submitAnswerButton.disabled = true; // On doit sélectionner une réponse avant de valider
+      } else {
+        // Fin de la phase actuelle
+        moveToNextPhase();
+      }
+    }
+
+    function selectAnswer(selectedButton, optionText) {
+        // Désélectionner toutes les autres options
+        document.querySelectorAll('.answer-button').forEach(btn => {
+            btn.classList.remove('selected');
+        });
+        // Sélectionner le bouton cliqué
+        selectedButton.classList.add('selected');
+        submitAnswerButton.disabled = false; // Activer le bouton de validation
+        submitAnswerButton.dataset.selectedAnswer = optionText; // Stocker temporairement la réponse sélectionnée
+    }
+
+    function submitAnswer() {
+        const selectedAnswer = submitAnswerButton.dataset.selectedAnswer;
+        if (!selectedAnswer) {
+            alert("Veuillez sélectionner une réponse !");
+            return;
+        }
+
+        const questionId = currentQuestionIndex; // Utiliser l'index de la question comme ID
+        if (!gameAnswers[questionId]) {
+            gameAnswers[questionId] = {};
+        }
+
+        switch (currentGamePhase) {
+            case GAME_PHASES.PLAYER1_ANSWERS:
+                gameAnswers[questionId].anushkaAnswer = selectedAnswer;
+                break;
+            case GAME_PHASES.PLAYER2_ANSWERS:
+                gameAnswers[questionId].anneClaireAnswer = selectedAnswer;
+                break;
+            case GAME_PHASES.PLAYER1_GUESSES:
+                gameAnswers[questionId].anushkaGuess = selectedAnswer;
+                break;
+            case GAME_PHASES.PLAYER2_GUESSES:
+                gameAnswers[questionId].anneClaireGuess = selectedAnswer;
+                break;
+        }
+
+        currentQuestionIndex++;
+        displayQuestion();
+    }
+
+    function moveToNextPhase() {
+        switch(currentGamePhase) {
+            case GAME_PHASES.PLAYER1_ANSWERS:
+                // Si Anne-Claire n'a pas encore répondu, on passe à Anne-Claire
+                // On peut vérifier si les réponses de Anne-Claire sont déjà là pour cette catégorie (si on rejoue)
+                if (Object.values(gameAnswers).some(qa => qa.anneClaireAnswer)) {
+                    // Si on a déjà les réponses des deux joueurs, on passe directement aux devinettes
+                    startGamePhase(GAME_PHASES.PLAYER1_GUESSES);
+                } else {
+                    playerSelectionTitle.textContent = `Prêt(e) pour le quiz "${currentCategory}"`;
+                    showScreen(playerSelectionScreen); // Retourne à la sélection du joueur pour Anne-Claire
+                }
+                break;
+            case GAME_PHASES.PLAYER2_ANSWERS:
+                startGamePhase(GAME_PHASES.PLAYER1_GUESSES); // Après qu'Anne-Claire ait répondu, Anushka devine
+                break;
+            case GAME_PHASES.PLAYER1_GUESSES:
+                startGamePhase(GAME_PHASES.PLAYER2_GUESSES); // Après qu'Anushka ait deviné, Anne-Claire devine
+                break;
+            case GAME_PHASES.PLAYER2_GUESSES:
+                startGamePhase(GAME_PHASES.RESULTS); // Après qu'Anne-Claire ait deviné, on montre les résultats
+                break;
+        }
+    }
+
+    function showResults() {
+        let anushkaCorrectGuesses = 0;
+        let anneClaireCorrectGuesses = 0;
+        const totalQuestions = gameQuestions.length;
+
+        resultsList.innerHTML = ''; // Nettoyer la liste précédente
+
+        for (let i = 0; i < totalQuestions; i++) {
+            const qData = gameQuestions[i];
+            const answers = gameAnswers[i];
+
+            const li = document.createElement('li');
+            let itemHtml = `<strong>Q${i + 1}: ${qData.q}</strong><br>`;
+
+            // Réponse d'Anushka
+            itemHtml += `Anushka a répondu : <em>${answers.anushkaAnswer}</em><br>`;
+
+            // Réponse d'Anne-Claire
+            itemHtml += `Anne-Claire a répondu : <em>${answers.anneClaireAnswer}</em><br>`;
+
+            // Devine d'Anushka
+            itemHtml += `Anushka a deviné pour Anne-Claire : <em>${answers.anushkaGuess}</em> `;
+            if (answers.anushkaGuess === answers.anneClaireAnswer) {
+                anushkaCorrectGuesses++;
+                itemHtml += `<span class="correct-answer">(Correct ✅)</span><br>`;
+            } else {
+                itemHtml += `<span class="wrong-answer">(Faux ❌)</span><br>`;
+            }
+
+            // Devine d'Anne-Claire
+            itemHtml += `Anne-Claire a deviné pour Anushka : <em>${answers.anneClaireGuess}</em> `;
+            if (answers.anneClaireGuess === answers.anushkaAnswer) {
+                anneClaireCorrectGuesses++;
+                itemHtml += `<span class="correct-answer">(Correct ✅)</span>`;
+            } else {
+                itemHtml += `<span class="wrong-answer">(Faux ❌)</span>`;
+            }
+            li.innerHTML = itemHtml;
+            resultsList.appendChild(li);
+        }
+
+        anushkaScoreSummary.textContent = `Anushka a deviné ${anushkaCorrectGuesses} / ${totalQuestions} réponses correctement !`;
+        anneClaireScoreSummary.textContent = `Anne-Claire a deviné ${anneClaireCorrectGuesses} / ${totalQuestions} réponses correctement !`;
+    }
+
+    // --- Écouteurs d'événements ---
+
+    // Connexion
+    submitPasswordButton.addEventListener('click', () => {
+      if (passwordInput.value === CORRECT_PASSWORD) {
+        showScreen(secretMessageScreen);
+        passwordInput.value = '';
+        errorMessage.classList.add('hidden');
+      } else {
+        errorMessage.classList.remove('hidden');
+        passwordInput.value = '';
+        passwordInput.focus();
+      }
+    });
+
+    passwordInput.addEventListener('keypress', (event) => {
+      if (event.key === 'Enter') {
+        submitPasswordButton.click();
+      }
+    });
+
+    // Message secret
+    continueToCategoriesButton.addEventListener('click', () => {
+        showScreen(categorySelectionScreen);
+    });
+
+    // Sélection de catégorie
+    categoryButtons.forEach(button => {
+      button.addEventListener('click', (event) => {
+        currentCategory = event.target.dataset.category;
+        currentCategoryQuestions = questionsByCategory[currentCategory]; // Récupère les questions de base
+        gameQuestions = [...currentCategoryQuestions]; // Copie pour mélanger si besoin
+        gameQuestions.sort(() => Math.random() - 0.5); // Mélange les questions pour chaque partie
+        gameAnswers = {}; // Réinitialise les réponses pour une nouvelle catégorie
+
+        playerSelectionTitle.textContent = `Prêt(e) pour le quiz "${currentCategory}"`;
+        showScreen(playerSelectionScreen);
+      });
+    });
+
+    // Sélection du joueur
+    playerButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            const player = event.target.dataset.player;
+            if (player === PLAYERS.ANUSHKA) {
+                startGamePhase(GAME_PHASES.PLAYER1_ANSWERS);
+            } else if (player === PLAYERS.ANNE_CLAIRE) {
+                // Si Anne-Claire est sélectionnée en premier ou après Anushka,
+                // il faut vérifier si Anushka a déjà répondu
+                const anushkaHasAnswered = Object.values(gameAnswers).every(qa => qa.anushkaAnswer);
+                if (anushkaHasAnswered || gameQuestions.length === 0) { // gameQuestions.length === 0 si on arrive ici sans avoir sélectionné de catégorie
+                    startGamePhase(GAME_PHASES.PLAYER2_ANSWERS);
+                } else {
+                    alert("Anushka doit d'abord répondre à toutes les questions de cette catégorie !");
+                    // On peut rediriger vers la sélection d'Anushka ou empêcher le clic
+                }
+            }
+        });
+    });
+
+    // Validation de la réponse
+    submitAnswerButton.addEventListener('click', submitAnswer);
+
+    // Rejouer/Retour depuis l'écran des résultats
+    playAgainButton.addEventListener('click', () => {
+        // Redémarre la même catégorie avec un nouveau mix de questions
+        gameQuestions = [...currentCategoryQuestions];
+        gameQuestions.sort(() => Math.random() - 0.5);
+        gameAnswers = {}; // Réinitialise tout
+        playerSelectionTitle.textContent = `Prêt(e) pour rejouer "${currentCategory}"`;
+        showScreen(playerSelectionScreen);
+    });
+
+    backToCategoriesFromResults.addEventListener('click', () => {
+        showScreen(categorySelectionScreen);
+    });
+
+
+    // --- Initialisation ---
+    showScreen(loginScreen);
+
+  </script>
+
+</body>
+</html>
